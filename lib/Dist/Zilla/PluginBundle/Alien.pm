@@ -27,6 +27,10 @@ sub configure {
     -bundle => '@Basic',
     -remove => ['MakeMaker'],
   });
+
+  $self->add_plugins([ 'Alien' => {
+    map { $_ => $self->payload->{$_} } keys %{$self->payload},
+  }]);
 }
 
 __PACKAGE__->meta->make_immutable;
