@@ -6,15 +6,19 @@ use Moose::Autobox;
 use Dist::Zilla;
 with 'Dist::Zilla::Role::PluginBundle::Easy';
 
-=head1 DESCRIPTION
+=head1 SYNOPSIS
 
-This plugin bundle allows to use L<Dist::Zilla::Plugin::Alien> together
-with L<Dist::Zilla::PluginBundle::Basic>.
+In your B<dist.ini>:
 
   name = Alien-ffmpeg
 
   [@Alien]
   repo = http://ffmpeg.org/releases
+
+=head1 DESCRIPTION
+
+This plugin bundle allows to use L<Dist::Zilla::Plugin::Alien> together
+with L<Dist::Zilla::PluginBundle::Basic>.
 
 =cut
 
