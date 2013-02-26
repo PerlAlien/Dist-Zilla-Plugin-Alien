@@ -202,7 +202,8 @@ __EOT__
 
 		my $file = Dist::Zilla::File::InMemory->new({
 			content => $content,
-			name    => 'bin/'.$_,
+			name => 'bin/'.$_,
+			mode => 0755,
 		});
 
 		$self->add_file($file);
