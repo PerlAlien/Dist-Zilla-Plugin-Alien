@@ -7,7 +7,7 @@ with 'Dist::Zilla::Role::PrereqSource', 'Dist::Zilla::Role::FileGatherer';
 
 =head1 SYNOPSIS
 
-In your B<dist.ini>:
+In your I<dist.ini>:
 
   name = Alien-myapp
 
@@ -28,11 +28,11 @@ generate a distribution that uses it. You only need to make a module like
 in this case Alien::myapp which extends Alien::Base and additionally a url
 that points to the path where the downloadable .tar.gz of the application
 or library can be found. For more informations about the parameter, please
-checkout also the L<Alien::Base> documentation. The B<repo> paramter is
+checkout also the L<Alien::Base> documentation. The I<repo> paramter is
 automatically taken apart to supply the procotol, host and other parameters
 for L<Alien::Base>.
 
-B<Note>: Please be aware that B<Alien::Base> uses B<Module::Build>, which
+B<Warning>: Please be aware that L<Alien::Base> uses L<Module::Build>, which
 means you shouldn't have L<Dist::Zilla::Plugin::MakeMaker> loaded. For our
 case, this means, you can't just easily use it together with the common
 L<Dist::Zilla::PluginBundle::Basic>, because this includes it. As alternative
@@ -53,14 +53,14 @@ alienfied product.
 
 =head2 bins
 
-A space seperated list of all binaries that should be wrapped to be executable
+A space or tab seperated list of all binaries that should be wrapped to be executable
 from the perl environment (if you use perlbrew or local::lib this also
 guarantees that its available via the PATH).
 
 =head2 name
 
 The name of the Alien package, this is used for the pattern matching filename.
-If none is given, then the name of the distribution is used, but the B<Alien->
+If none is given, then the name of the distribution is used, but the I<Alien->
 is cut off.
 
 =cut
