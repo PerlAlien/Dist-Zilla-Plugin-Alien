@@ -49,7 +49,9 @@ you want to alienfy. This must not include the filename.
 =head2 pattern
 
 The pattern is used to define the filename to be expected from the repo of the
-alienfied product.
+alienfied product. It is set together out of I<pattern_prefix>,
+I<pattern_version> and I<pattern_suffix>. I<pattern_prefix> is by default
+L</name> together with a dash.
 
 =head2 bins
 
@@ -62,6 +64,21 @@ guarantees that its available via the PATH).
 The name of the Alien package, this is used for the pattern matching filename.
 If none is given, then the name of the distribution is used, but the I<Alien->
 is cut off.
+
+=head1 InstallRelease
+
+The method L<Alien::Base> is using would compile the complete Alien 2 times, if
+you use it in combination with L<Dist::Zilla::Plugin::InstallRelease>. One time
+at the test, and then again after release. With a small trick, you can avoid
+this. You can use L<Dist::Zilla::Plugin::Run> to add an additional test which
+installs out of the unpacked distribution for the testing:
+
+  [Run::Test]
+  run_if_release = ./Build install
+
+This will do the trick :). Be aware, that you need to add this plugin after
+I<[ModuleBuild]>. You can use L<Dist::Zilla::PluginBundle::Author::GETTY>,
+which directly use this trick in the right combination.
 
 =cut
 
