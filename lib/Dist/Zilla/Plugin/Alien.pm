@@ -46,6 +46,14 @@ distribution.
 The only required parameter, defines the path for the packages of the product
 you want to alienfy. This must not include the filename.
 
+To indicate a local repository use the C<file:> scheme:
+
+   # located in the base directory
+   repo = file:.
+
+   # located in the inc/ directory relative to the base
+   repo = file:inc
+
 =head2 pattern
 
 The pattern is used to define the filename to be expected from the repo of the
