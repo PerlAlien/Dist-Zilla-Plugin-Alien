@@ -21,6 +21,7 @@ In your I<dist.ini>:
   pattern_suffix = \.tar\.gz
   pattern = myapp-([\d\.]+)\.tar\.gz
 
+  # commands used to build (optional)
   build_command = %pconfigure --prefix=%s
   # ...
 
@@ -71,7 +72,7 @@ is cut off.
 =head2 build_command
 
 The ordered sequence of commands used to build the distribution (passed to the
-C<alien_build_commands> option).
+C<alien_build_commands> option). This is optional.
 
   # configure then make
   build_command = %pconfigure --prefix=%s
