@@ -234,10 +234,14 @@ around module_build_args => sub {
 		%{ $self->$orig(@args) },
 		alien_name => $self->name,
 		alien_repository => {
-			protocol => $self->repo_uri->scheme,
-			host => $self->repo_uri->default_port == $self->repo_uri->port
-				? $self->repo_uri->host
-				: $self->repo_uri->host_port,
+			protocol => $self->repo_uri->scheme eq 'file'
+				? 'local'
+				: $self->repo_uri->scheme,
+			host => $self->repo_uri->can('port') # local files do not have port
+				? ( $self->repo_uri->default_port == $self->repo_uri->port
+					? $self->repo_uri->host
+					: $self->repo_uri->host_port )
+				: '',
 			location => $self->repo_uri->path,
 			pattern => qr/^$pattern$/,
 		},
