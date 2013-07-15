@@ -21,6 +21,13 @@ In your I<dist.ini>:
   pattern_suffix = \.tar\.gz
   pattern = myapp-([\d\.]+)\.tar\.gz
 
+  # commands used to build (optional)
+  build_command = %pconfigure --prefix=%s
+  # ...
+
+  # commands uses to install (optional)
+  install_command = make install
+
 =head1 DESCRIPTION
 
 This is a simple wrapper around Alien::Base, to make it very simple to
@@ -64,6 +71,22 @@ guarantees that its available via the PATH).
 The name of the Alien package, this is used for the pattern matching filename.
 If none is given, then the name of the distribution is used, but the I<Alien->
 is cut off.
+
+=head2 build_command
+
+The ordered sequence of commands used to build the distribution (passed to the
+C<alien_build_commands> option). This is optional.
+
+  # configure then make
+  build_command = %pconfigure --prefix=%s
+  build_command = make
+
+=head2 install_command
+
+The ordered sequence of commands used to install the distribution (passed to the
+C<alien_install_commands> option). This is optional.
+
+  install_command = make install
 
 =head1 InstallRelease
 
@@ -163,6 +186,22 @@ sub _build_pattern {
 	);
 }
 
+has build_command => (
+	isa => 'ArrayRef[Str]',
+	is => 'rw',
+);
+
+has install_command => (
+	isa => 'ArrayRef[Str]',
+	is => 'rw',
+);
+
+# multiple build/install commands return as an arrayref
+around mvp_multivalue_args => sub {
+  my ($orig, $self) = @_;
+  return ($self->$orig, 'build_command', 'install_command');
+};
+
 sub register_prereqs {
 	my ( $self ) = @_;
 	$self->zilla->register_prereqs({
@@ -241,6 +280,8 @@ around module_build_args => sub {
 			location => $self->repo_uri->path,
 			pattern => qr/^$pattern$/,
 		},
+		(alien_build_commands => $self->build_command)x!! $self->build_command,
+		(alien_install_commands => $self->install_command)x!! $self->install_command,
 	};
 };
 
