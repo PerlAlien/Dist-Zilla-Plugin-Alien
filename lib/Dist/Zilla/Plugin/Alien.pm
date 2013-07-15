@@ -196,7 +196,7 @@ has install_command => (
 	is => 'rw',
 );
 
-# multiple build commands return as an arrayref
+# multiple build/install commands return as an arrayref
 around mvp_multivalue_args => sub {
   my ($orig, $self) = @_;
   return ($self->$orig, 'build_command', 'install_command');
