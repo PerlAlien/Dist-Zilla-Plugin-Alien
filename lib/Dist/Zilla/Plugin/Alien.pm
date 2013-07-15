@@ -25,6 +25,9 @@ In your I<dist.ini>:
   build_command = %pconfigure --prefix=%s
   # ...
 
+  # commands uses to install (optional)
+  install_command = make install
+
 =head1 DESCRIPTION
 
 This is a simple wrapper around Alien::Base, to make it very simple to
@@ -77,6 +80,13 @@ C<alien_build_commands> option). This is optional.
   # configure then make
   build_command = %pconfigure --prefix=%s
   build_command = make
+
+=head2 install_command
+
+The ordered sequence of commands used to install the distribution (passed to the
+C<alien_install_commands> option). This is optional.
+
+  install_command = make install
 
 =head1 InstallRelease
 
@@ -181,10 +191,15 @@ has build_command => (
 	is => 'rw',
 );
 
+has install_command => (
+	isa => 'ArrayRef[Str]',
+	is => 'rw',
+);
+
 # multiple build commands return as an arrayref
 around mvp_multivalue_args => sub {
   my ($orig, $self) = @_;
-  return ($self->$orig, 'build_command');
+  return ($self->$orig, 'build_command', 'install_command');
 };
 
 sub register_prereqs {
@@ -266,6 +281,7 @@ around module_build_args => sub {
 			pattern => qr/^$pattern$/,
 		},
 		(alien_build_commands => $self->build_command)x!! $self->build_command,
+		(alien_install_commands => $self->install_command)x!! $self->install_command,
 	};
 };
 
