@@ -53,6 +53,14 @@ distribution.
 The only required parameter, defines the path for the packages of the product
 you want to alienfy. This must not include the filename.
 
+To indicate a local repository use the C<file:> scheme:
+
+   # located in the base directory
+   repo = file:.
+
+   # located in the inc/ directory relative to the base
+   repo = file:inc
+
 =head2 pattern
 
 The pattern is used to define the filename to be expected from the repo of the
@@ -273,10 +281,14 @@ around module_build_args => sub {
 		%{ $self->$orig(@args) },
 		alien_name => $self->name,
 		alien_repository => {
-			protocol => $self->repo_uri->scheme,
-			host => $self->repo_uri->default_port == $self->repo_uri->port
-				? $self->repo_uri->host
-				: $self->repo_uri->host_port,
+			protocol => $self->repo_uri->scheme eq 'file'
+				? 'local'
+				: $self->repo_uri->scheme,
+			host => $self->repo_uri->can('port') # local files do not have port
+				? ( $self->repo_uri->default_port == $self->repo_uri->port
+					? $self->repo_uri->host
+					: $self->repo_uri->host_port )
+				: '',
 			location => $self->repo_uri->path,
 			pattern => qr/^$pattern$/,
 		},
