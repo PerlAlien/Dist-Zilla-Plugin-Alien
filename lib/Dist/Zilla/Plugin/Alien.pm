@@ -218,7 +218,7 @@ sub register_prereqs {
 		},
 		'Alien::Base' => '0.002',
 		'File::ShareDir' => '1.03',
-		'Path::Class' => '0.013',
+		@{ $self->split_bins } > 0 ? ('Path::Class' => '0.013') : (),
 	);
 	$self->zilla->register_prereqs({
 			type  => 'requires',
@@ -226,7 +226,7 @@ sub register_prereqs {
 		},
 		'Alien::Base' => '0.002',
 		'File::ShareDir' => '1.03',
-		'Path::Class' => '0.013',
+		@{ $self->split_bins } > 0 ? ('Path::Class' => '0.013') : (),
 	);
 }
 
