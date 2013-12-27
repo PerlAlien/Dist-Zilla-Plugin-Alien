@@ -290,7 +290,13 @@ around module_build_args => sub {
 					: $self->repo_uri->host_port )
 				: '',
 			location => $self->repo_uri->path,
-			pattern => qr/^$pattern$/,
+			# NOTE Not using a compiled regex here for serialisation
+			# in case it adds flags not in older versions of perl.
+			# In particular, the compiled regex was adding the u
+			# modifier, but then getting serialised as
+			# (?^u:$pattern) which fails to parse under perl less
+			# than v5.014.
+			pattern => "^$pattern\$",
 		},
 		(alien_build_commands => $self->build_command)x!! $self->build_command,
 		(alien_install_commands => $self->install_command)x!! $self->install_command,
