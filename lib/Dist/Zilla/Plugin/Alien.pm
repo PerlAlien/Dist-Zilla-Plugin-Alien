@@ -96,6 +96,32 @@ C<alien_install_commands> option). This is optional.
 
   install_command = make install
 
+=head2 isolate_dynamic
+
+If set to true, then dynamic libraries will be isolated from the static libraries
+when C<install_type=share> is used.  This is recommended for XS modules where
+static libraries are more reliable.  Dynamic libraries (.dll, .so, etc) are still
+available and can easily be used by FFI modules.
+
+  isolate_dynamic = 1
+
+Usage of this attribute will bump the requirement of L<Alien::Base> up to 0.005
+for your distribution.
+
+=head2 autoconf_with_pic
+
+If set to true (the default), then C<--with-pic> will be passed to autoconf style
+C<configure> scripts.  This usually enables position independent code which is 
+desirable if you are using static libraries to build XS modules.  Usually, if the
+autoconf does not recognize C<--with-pic> it will ignore it, but some C<configure>
+scripts which are not managed by autoconf may complain and die with this option.
+
+  ; only if you know configure will die with --with-pic
+  autoconf_with_pic = 0
+
+Usage of this attribute will bump the requirement of L<Alien::Base> up to 0.005
+for your distribution.
+
 =head1 InstallRelease
 
 The method L<Alien::Base> is using would compile the complete Alien 2 times, if
@@ -204,6 +230,16 @@ has install_command => (
 	is => 'rw',
 );
 
+has isolate_dynamic => (
+	isa => 'Int',
+	is => 'rw',
+);
+
+has autoconf_with_pic => (
+	isa => 'Int',
+	is => 'rw',
+);
+
 # multiple build/install commands return as an arrayref
 around mvp_multivalue_args => sub {
   my ($orig, $self) = @_;
@@ -212,11 +248,18 @@ around mvp_multivalue_args => sub {
 
 sub register_prereqs {
 	my ( $self ) = @_;
+	
+	my $ab_version = '0.002';
+	
+	if(defined $self->isolate_dynamic || defined $self->autoconf_with_pic || grep /%c/, @{ $self->build_command || [] }) {
+		$ab_version = '0.005';
+	}
+	
 	$self->zilla->register_prereqs({
 			type  => 'requires',
 			phase => 'configure',
 		},
-		'Alien::Base' => '0.002',
+		'Alien::Base' => $ab_version,
 		'File::ShareDir' => '1.03',
 		@{ $self->split_bins } > 0 ? ('Path::Class' => '0.013') : (),
 	);
@@ -224,7 +267,7 @@ sub register_prereqs {
 			type  => 'requires',
 			phase => 'runtime',
 		},
-		'Alien::Base' => '0.002',
+		'Alien::Base' => $ab_version,
 		'File::ShareDir' => '1.03',
 		@{ $self->split_bins } > 0 ? ('Path::Class' => '0.013') : (),
 	);
@@ -300,6 +343,8 @@ around module_build_args => sub {
 		},
 		(alien_build_commands => $self->build_command)x!! $self->build_command,
 		(alien_install_commands => $self->install_command)x!! $self->install_command,
+		defined $self->autoconf_with_pic ? (alien_autoconf_with_pic => $self->autoconf_with_pic) : (),
+		defined $self->isolate_dynamic ? (alien_isolate_dynamic => $self->isolate_dynamic) : (),
 	};
 };
 
