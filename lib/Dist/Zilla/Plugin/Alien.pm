@@ -96,6 +96,26 @@ C<alien_install_commands> option). This is optional.
 
   install_command = make install
 
+=head2 isolate_dynamic
+
+If set to true, then dynamic libraries will be isolated from the static libraries
+when C<install_type=share> is used.  This is recommended for XS modules where
+static libraries are more reliable.  Dynamic libraries (.dll, .so, etc) are still
+available and can easily be used by FFI modules.
+
+  isolate_dynamic = 1
+
+=head2 autoconf_with_pic
+
+If set to true (the default), then C<--with-pic> will be passed to autoconf style
+C<configure> scripts.  This usually enables position independent code which is 
+desirable if you are using static libraries to build XS modules.  Usually, if the
+autoconf does not recognize C<--with-pic> it will ignore it, but some C<configure>
+scripts which are not managed by autoconf may complain and die with this option.
+
+  ; only if you know configure will die with --with-pic
+  autoconf_with_pic = 0
+
 =head1 InstallRelease
 
 The method L<Alien::Base> is using would compile the complete Alien 2 times, if
@@ -204,6 +224,16 @@ has install_command => (
 	is => 'rw',
 );
 
+has isolate_dynamic => (
+	isa => 'Int',
+	is => 'rw',
+);
+
+has autoconf_with_pic => (
+	isa => 'Int',
+	is => 'rw',
+);
+
 # multiple build/install commands return as an arrayref
 around mvp_multivalue_args => sub {
   my ($orig, $self) = @_;
@@ -300,6 +330,8 @@ around module_build_args => sub {
 		},
 		(alien_build_commands => $self->build_command)x!! $self->build_command,
 		(alien_install_commands => $self->install_command)x!! $self->install_command,
+		defined $self->autoconf_with_pic ? (alien_autoconf_with_pic => $self->autoconf_with_pic) : (),
+		defined $self->isolate_dynamic ? (alien_isolate_dynamic => $self->isolate_dynamic) : (),
 	};
 };
 
