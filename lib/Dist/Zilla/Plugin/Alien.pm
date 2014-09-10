@@ -105,6 +105,9 @@ available and can easily be used by FFI modules.
 
   isolate_dynamic = 1
 
+Usage of this attribute will bump the requirement of L<Alien::Base> up to 0.005
+for your distribution.
+
 =head2 autoconf_with_pic
 
 If set to true (the default), then C<--with-pic> will be passed to autoconf style
@@ -115,6 +118,9 @@ scripts which are not managed by autoconf may complain and die with this option.
 
   ; only if you know configure will die with --with-pic
   autoconf_with_pic = 0
+
+Usage of this attribute will bump the requirement of L<Alien::Base> up to 0.005
+for your distribution.
 
 =head1 InstallRelease
 
@@ -242,11 +248,18 @@ around mvp_multivalue_args => sub {
 
 sub register_prereqs {
 	my ( $self ) = @_;
+	
+	my $ab_version = '0.002';
+	
+	if(defined $self->isolate_dynamic || defined $self->autoconf_with_pic || grep /%c/, @{ $self->build_command || [] }) {
+		$ab_version = '0.005';
+	}
+	
 	$self->zilla->register_prereqs({
 			type  => 'requires',
 			phase => 'configure',
 		},
-		'Alien::Base' => '0.002',
+		'Alien::Base' => $ab_version,
 		'File::ShareDir' => '1.03',
 		@{ $self->split_bins } > 0 ? ('Path::Class' => '0.013') : (),
 	);
@@ -254,7 +267,7 @@ sub register_prereqs {
 			type  => 'requires',
 			phase => 'runtime',
 		},
-		'Alien::Base' => '0.002',
+		'Alien::Base' => $ab_version,
 		'File::ShareDir' => '1.03',
 		@{ $self->split_bins } > 0 ? ('Path::Class' => '0.013') : (),
 	);
