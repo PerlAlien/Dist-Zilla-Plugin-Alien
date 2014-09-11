@@ -111,7 +111,7 @@ for your distribution.
 =head2 autoconf_with_pic
 
 If set to true (the default), then C<--with-pic> will be passed to autoconf style
-C<configure> scripts.  This usually enables position independent code which is 
+C<configure> scripts.  This usually enables position independent code which is
 desirable if you are using static libraries to build XS modules.  Usually, if the
 autoconf does not recognize C<--with-pic> it will ignore it, but some C<configure>
 scripts which are not managed by autoconf may complain and die with this option.
@@ -248,13 +248,13 @@ around mvp_multivalue_args => sub {
 
 sub register_prereqs {
 	my ( $self ) = @_;
-	
+
 	my $ab_version = '0.002';
-	
+
 	if(defined $self->isolate_dynamic || defined $self->autoconf_with_pic || grep /%c/, @{ $self->build_command || [] }) {
 		$ab_version = '0.005';
 	}
-	
+
 	$self->zilla->register_prereqs({
 			type  => 'requires',
 			phase => 'configure',
@@ -304,7 +304,7 @@ __EOT__
 			{
 				dist => \($self->zilla),
 				bin => $_,
-			},	
+			},
 		);
 
 		my $file = Dist::Zilla::File::InMemory->new({
