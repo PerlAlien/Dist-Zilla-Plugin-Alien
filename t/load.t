@@ -1,8 +1,10 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Test::LoadAllModules;
+use Test::More;
 
 BEGIN {
-	all_uses_ok( search_path => 'Dist::Zilla::Plugin::Alien' );
+	my @modules = qw(Dist::Zilla::Plugin::Alien Dist::Zilla::PluginBundle::Alien);
+	plan tests => scalar @modules;
+	use_ok($_) for @modules;
 }
