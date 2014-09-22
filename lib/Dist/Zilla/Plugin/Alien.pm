@@ -122,6 +122,11 @@ scripts which are not managed by autoconf may complain and die with this option.
 Usage of this attribute will bump the requirement of L<Alien::Base> up to 0.005
 for your distribution.
 
+=head2 inline_auto_include
+
+List of header files to automatically include (see L<Inline::C#auto_include>) when
+the Alien module is used with L<Inline::C> or L<Inline::CPP>.
+
 =head1 InstallRelease
 
 The method L<Alien::Base> is using would compile the complete Alien 2 times, if
@@ -240,10 +245,15 @@ has autoconf_with_pic => (
 	is => 'rw',
 );
 
+has inline_auto_include => (
+	isa => 'ArrayRef[Str]',
+	is => 'rw',
+);
+
 # multiple build/install commands return as an arrayref
 around mvp_multivalue_args => sub {
   my ($orig, $self) = @_;
-  return ($self->$orig, 'build_command', 'install_command');
+  return ($self->$orig, 'build_command', 'install_command', 'inline_auto_include');
 };
 
 sub register_prereqs {
@@ -253,6 +263,10 @@ sub register_prereqs {
 
 	if(defined $self->isolate_dynamic || defined $self->autoconf_with_pic || grep /%c/, @{ $self->build_command || [] }) {
 		$ab_version = '0.005';
+	}
+	
+	if(@{ $self->inline_auto_include }) {
+		$ab_version = '0.006';
 	}
 
 	$self->zilla->register_prereqs({
@@ -343,6 +357,7 @@ around module_build_args => sub {
 		},
 		(alien_build_commands => $self->build_command)x!! $self->build_command,
 		(alien_install_commands => $self->install_command)x!! $self->install_command,
+		(alien_inline_auto_include => $self->inline_auto_include)x!! $self->inline_auto_include,
 		defined $self->autoconf_with_pic ? (alien_autoconf_with_pic => $self->autoconf_with_pic) : (),
 		defined $self->isolate_dynamic ? (alien_isolate_dynamic => $self->isolate_dynamic) : (),
 	};
