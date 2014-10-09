@@ -127,6 +127,21 @@ for your distribution.
 List of header files to automatically include (see L<Inline::C#auto_include>) when
 the Alien module is used with L<Inline::C> or L<Inline::CPP>.
 
+=head2 msys
+
+Force the use of L<Alien::MSYS> when building on Windows.  Normally this is only
+done if L<Alien::Base::ModuleBuild> can detect that you are attempting to use
+an autotools style C<configure> script.
+
+=head2 bin_requires
+
+Require the use of a binary tool Alien distribution.  You can optionally specify
+a version using the equal C<=> sign.
+
+ [Alien]
+ bin_requires = Alien::patch
+ bin_requires = Alien::gmake = 0.03
+
 =head1 InstallRelease
 
 The method L<Alien::Base> is using would compile the complete Alien 2 times, if
