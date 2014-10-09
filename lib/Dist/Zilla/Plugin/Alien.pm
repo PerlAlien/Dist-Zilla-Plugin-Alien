@@ -256,10 +256,16 @@ has msys => (
         is  => 'rw',
 );
 
+has bin_requires => (
+        isa => 'ArrayRef[Str]',
+        is  => 'rw',
+        default => sub { [] },
+);
+
 # multiple build/install commands return as an arrayref
 around mvp_multivalue_args => sub {
   my ($orig, $self) = @_;
-  return ($self->$orig, 'build_command', 'install_command', 'inline_auto_include');
+  return ($self->$orig, 'build_command', 'install_command', 'inline_auto_include', 'bin_requires');
 };
 
 sub register_prereqs {
@@ -271,7 +277,7 @@ sub register_prereqs {
 		$ab_version = '0.005';
 	}
 	
-	if(@{ $self->inline_auto_include }) {
+	if(@{ $self->inline_auto_include } || @{ $self->bin_requires } || defined $self->msys) {
 		$ab_version = '0.006';
 	}
 
@@ -340,6 +346,9 @@ __EOT__
 around module_build_args => sub {
 	my ($orig, $self, @args) = @_;
 	my $pattern = $self->pattern;
+
+	my %bin_requires = map { /^\s*(.*?)\s*=\s*(.*)\s*$/ ? ($1 => $2) : ($_ => 0) } @{ $self->bin_requires };
+	
 	return {
 		%{ $self->$orig(@args) },
 		alien_name => $self->name,
@@ -367,6 +376,7 @@ around module_build_args => sub {
 		defined $self->autoconf_with_pic ? (alien_autoconf_with_pic => $self->autoconf_with_pic) : (),
 		defined $self->isolate_dynamic ? (alien_isolate_dynamic => $self->isolate_dynamic) : (),
 		defined $self->msys ? (alien_msys => $self->msys) : (),
+		%bin_requires ? ( alien_bin_requires => \%bin_requires ) : (),
 	};
 };
 
