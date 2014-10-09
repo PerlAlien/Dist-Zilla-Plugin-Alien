@@ -248,6 +248,12 @@ has autoconf_with_pic => (
 has inline_auto_include => (
 	isa => 'ArrayRef[Str]',
 	is => 'rw',
+	default => sub { [] },
+);
+
+has msys => (
+        isa => 'Int',
+        is  => 'rw',
 );
 
 # multiple build/install commands return as an arrayref
@@ -360,6 +366,7 @@ around module_build_args => sub {
 		(alien_inline_auto_include => $self->inline_auto_include)x!! $self->inline_auto_include,
 		defined $self->autoconf_with_pic ? (alien_autoconf_with_pic => $self->autoconf_with_pic) : (),
 		defined $self->isolate_dynamic ? (alien_isolate_dynamic => $self->isolate_dynamic) : (),
+		defined $self->msys ? (alien_msys => $self->msys) : (),
 	};
 };
 
