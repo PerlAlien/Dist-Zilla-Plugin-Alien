@@ -277,6 +277,12 @@ has bin_requires => (
         default => sub { [] },
 );
 
+sub _bin_requires_hash {
+	my($self) = @_;
+	my %bin_requires = map { /^\s*(.*?)\s*=\s*(.*)\s*$/ ? ($1 => $2) : ($_ => 0) } @{ $self->bin_requires };
+	\%bin_requires;
+}
+
 # multiple build/install commands return as an arrayref
 around mvp_multivalue_args => sub {
   my ($orig, $self) = @_;
@@ -287,6 +293,7 @@ sub register_prereqs {
 	my ( $self ) = @_;
 
 	my $ab_version = '0.002';
+	my $configure_requires = {};
 
 	if(defined $self->isolate_dynamic || defined $self->autoconf_with_pic || grep /%c/, @{ $self->build_command || [] }) {
 		$ab_version = '0.005';
@@ -294,6 +301,9 @@ sub register_prereqs {
 	
 	if(@{ $self->inline_auto_include } || @{ $self->bin_requires } || defined $self->msys) {
 		$ab_version = '0.006';
+		if(@{ $self->bin_requires }) {
+			$configure_requires = $self->_bin_requires_hash;
+		}
 	}
 
 	$self->zilla->register_prereqs({
@@ -303,6 +313,7 @@ sub register_prereqs {
 		'Alien::Base' => $ab_version,
 		'File::ShareDir' => '1.03',
 		@{ $self->split_bins } > 0 ? ('Path::Class' => '0.013') : (),
+		%$configure_requires,
 	);
 	$self->zilla->register_prereqs({
 			type  => 'requires',
@@ -362,7 +373,7 @@ around module_build_args => sub {
 	my ($orig, $self, @args) = @_;
 	my $pattern = $self->pattern;
 
-	my %bin_requires = map { /^\s*(.*?)\s*=\s*(.*)\s*$/ ? ($1 => $2) : ($_ => 0) } @{ $self->bin_requires };
+	my $bin_requires = $self->_bin_requires_hash;
 	
 	return {
 		%{ $self->$orig(@args) },
@@ -391,7 +402,7 @@ around module_build_args => sub {
 		defined $self->autoconf_with_pic ? (alien_autoconf_with_pic => $self->autoconf_with_pic) : (),
 		defined $self->isolate_dynamic ? (alien_isolate_dynamic => $self->isolate_dynamic) : (),
 		defined $self->msys ? (alien_msys => $self->msys) : (),
-		%bin_requires ? ( alien_bin_requires => \%bin_requires ) : (),
+		%$bin_requires ? ( alien_bin_requires => \%$bin_requires ) : (),
 	};
 };
 
