@@ -298,7 +298,7 @@ sub register_prereqs {
 	if(defined $self->isolate_dynamic || defined $self->autoconf_with_pic || grep /%c/, @{ $self->build_command || [] }) {
 		$ab_version = '0.005';
 	}
-	
+
 	if(@{ $self->inline_auto_include } || @{ $self->bin_requires } || defined $self->msys) {
 		$ab_version = '0.006';
 		if(@{ $self->bin_requires }) {
@@ -374,7 +374,7 @@ around module_build_args => sub {
 	my $pattern = $self->pattern;
 
 	my $bin_requires = $self->_bin_requires_hash;
-	
+
 	return {
 		%{ $self->$orig(@args) },
 		alien_name => $self->name,

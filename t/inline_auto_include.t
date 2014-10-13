@@ -27,7 +27,7 @@ subtest 'plugin' => sub {
 
   is $tzil->prereqs->as_string_hash->{configure}->{requires}->{'Alien::Base'}, '0.006', 'configure prereq';
   is $tzil->prereqs->as_string_hash->{runtime}->{requires}->{'Alien::Base'}, '0.006', 'runtime prereq';
-  
+
 };
 
 done_testing;
