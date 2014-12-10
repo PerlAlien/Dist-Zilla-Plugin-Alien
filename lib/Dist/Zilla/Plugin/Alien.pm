@@ -329,7 +329,7 @@ has "+mb_class" => (
 	default => 'Alien::Base::ModuleBuild',
 );
 
-sub gather_files {
+after gather_files => sub {
 	my ( $self ) = @_;
 
 	my $template = <<'__EOT__';
@@ -367,7 +367,7 @@ __EOT__
 
 		$self->add_file($file);
 	}
-}
+};
 
 around module_build_args => sub {
 	my ($orig, $self, @args) = @_;
