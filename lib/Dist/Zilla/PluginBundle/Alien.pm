@@ -2,7 +2,6 @@ package Dist::Zilla::PluginBundle::Alien;
 # ABSTRACT: Dist::Zilla::PluginBundle::Basic for Alien
 
 use Moose;
-use Moose::Autobox;
 use Dist::Zilla;
 with 'Dist::Zilla::Role::PluginBundle::Easy';
 
