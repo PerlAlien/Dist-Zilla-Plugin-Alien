@@ -144,7 +144,7 @@ a version using the equal C<=> sign.
 
 =head2 stage_install
 
-If set to true Alien packages that should be installed directory into the blib
+If set to true, Alien packages are installed directly into the blib
 directory by the `./Build' command rather than to the final location during the
 `./Build install` step.
 
