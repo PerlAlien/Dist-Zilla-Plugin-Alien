@@ -142,6 +142,12 @@ a version using the equal C<=> sign.
  bin_requires = Alien::patch
  bin_requires = Alien::gmake = 0.03
 
+=head2 stage_install
+
+If set to true Alien packages that should be installed directory into the blib
+directory by the `./Build' command rather than to the final location during the
+`./Build install` step.
+
 =head1 InstallRelease
 
 The method L<Alien::Base> is using would compile the complete Alien 2 times, if
@@ -283,6 +289,11 @@ sub _bin_requires_hash {
 	\%bin_requires;
 }
 
+has stage_install => (
+	isa => 'Int',
+	is  => 'rw',
+);
+
 # multiple build/install commands return as an arrayref
 around mvp_multivalue_args => sub {
   my ($orig, $self) = @_;
@@ -304,6 +315,10 @@ sub register_prereqs {
 		if(@{ $self->bin_requires }) {
 			$configure_requires = $self->_bin_requires_hash;
 		}
+	}
+	
+	if(defined $self->stage_install) {
+		$ab_version = '0.016';
 	}
 
 	$self->zilla->register_prereqs({
@@ -402,6 +417,7 @@ around module_build_args => sub {
 		defined $self->autoconf_with_pic ? (alien_autoconf_with_pic => $self->autoconf_with_pic) : (),
 		defined $self->isolate_dynamic ? (alien_isolate_dynamic => $self->isolate_dynamic) : (),
 		defined $self->msys ? (alien_msys => $self->msys) : (),
+		defined $self->stage_install ? (alien_stage_install => $self->stage_install) : (),
 		%$bin_requires ? ( alien_bin_requires => \%$bin_requires ) : (),
 	};
 };
