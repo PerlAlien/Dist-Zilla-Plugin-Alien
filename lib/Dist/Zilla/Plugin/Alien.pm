@@ -22,7 +22,7 @@ In your I<dist.ini>:
   pattern = myapp-([\d\.]+)\.tar\.gz
 
   # commands used to build (optional)
-  build_command = %pconfigure --prefix=%s
+  build_command = %c --prefix=%s
   # ...
 
   # commands uses to install (optional)
@@ -86,7 +86,7 @@ The ordered sequence of commands used to build the distribution (passed to the
 C<alien_build_commands> option). This is optional.
 
   # configure then make
-  build_command = %pconfigure --prefix=%s
+  build_command = %c --prefix=%s
   build_command = make
 
 =head2 install_command
