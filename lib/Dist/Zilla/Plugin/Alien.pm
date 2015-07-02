@@ -68,6 +68,10 @@ alienfied product. It is set together out of I<pattern_prefix>,
 I<pattern_version> and I<pattern_suffix>. I<pattern_prefix> is by default
 L</name> together with a dash.
 
+=head2 exact_filename
+
+Instead of providing a pattern you may use this to set the exact filename.
+
 =head2 bins
 
 A space or tab seperated list of all binaries that should be wrapped to be executable
@@ -262,6 +266,11 @@ sub _build_pattern {
 	);
 }
 
+has exact_filename => (
+	isa => 'Str',
+	is  => 'rw',
+);
+
 has build_command => (
 	isa => 'ArrayRef[Str]',
 	is => 'rw',
@@ -429,6 +438,7 @@ __EOT__
 around module_build_args => sub {
 	my ($orig, $self, @args) = @_;
 	my $pattern = $self->pattern;
+	my $exact_filename = $self->exact_filename;
 
 	my $bin_requires = $self->_bin_requires_hash;
 	my $helper       = $self->_helper_hash;
@@ -452,7 +462,7 @@ around module_build_args => sub {
 			# modifier, but then getting serialised as
 			# (?^u:$pattern) which fails to parse under perl less
 			# than v5.014.
-			pattern => "^$pattern\$",
+			defined $exact_filename ? (exact_filename => $exact_filename) : (pattern => "^$pattern\$"),
 		},
 		(alien_build_commands => $self->build_command)x!! $self->build_command,
 		(alien_install_commands => $self->install_command)x!! $self->install_command,
