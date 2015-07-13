@@ -68,6 +68,10 @@ alienfied product. It is set together out of I<pattern_prefix>,
 I<pattern_version> and I<pattern_suffix>. I<pattern_prefix> is by default
 L</name> together with a dash.
 
+=head2 exact_filename
+
+Instead of providing a pattern you may use this to set the exact filename.
+
 =head2 bins
 
 A space or tab seperated list of all binaries that should be wrapped to be executable
@@ -147,6 +151,22 @@ a version using the equal C<=> sign.
 If set to true, Alien packages are installed directly into the blib
 directory by the `./Build' command rather than to the final location during the
 `./Build install` step.
+
+=head2 helper
+
+Defines helpers.  You can specify the content of the helper (which will be evaluated
+in L<Alien::Base::ModuleBuild> during the build/install step) using the equal C<=> sign.
+
+ [Alien]
+ helper = mytool = 'mytool --foo --bar'
+
+=head2 provides_cflags
+
+Sets the C<alien_provides_cflags> property for L<Alien::Base::ModuleBuild>.
+
+=head2 provides_libs
+
+Sets the C<alien_provides_libs> property for L<Alien::Base::ModuleBuild>.
 
 =head1 InstallRelease
 
@@ -246,6 +266,11 @@ sub _build_pattern {
 	);
 }
 
+has exact_filename => (
+	isa => 'Str',
+	is  => 'rw',
+);
+
 has build_command => (
 	isa => 'ArrayRef[Str]',
 	is => 'rw',
@@ -289,15 +314,37 @@ sub _bin_requires_hash {
 	\%bin_requires;
 }
 
+has helper => (
+	isa => 'ArrayRef[Str]',
+	is  => 'rw',
+	default => sub { [] },
+);
+
+sub _helper_hash {
+	my($self) = @_;
+	my %helper = map { /^\s*(.*?)\s*=\s*(.*)\s*$/ ? ($1 => $2) : ($_ => '') } @{ $self->helper };
+	\%helper;
+}
+
 has stage_install => (
 	isa => 'Int',
+	is  => 'rw',
+);
+
+has provides_cflags => (
+	isa => 'Str',
+	is  => 'rw',
+);
+
+has provides_libs => (
+	isa => 'Str',
 	is  => 'rw',
 );
 
 # multiple build/install commands return as an arrayref
 around mvp_multivalue_args => sub {
   my ($orig, $self) = @_;
-  return ($self->$orig, 'build_command', 'install_command', 'inline_auto_include', 'bin_requires');
+  return ($self->$orig, 'build_command', 'install_command', 'inline_auto_include', 'bin_requires', 'helper');
 };
 
 sub register_prereqs {
@@ -306,7 +353,7 @@ sub register_prereqs {
 	my $ab_version = '0.002';
 	my $configure_requires = {};
 
-	if(defined $self->isolate_dynamic || defined $self->autoconf_with_pic || grep /%c/, @{ $self->build_command || [] }) {
+	if(defined $self->isolate_dynamic || defined $self->autoconf_with_pic || grep /(?<!\%)\%c/, @{ $self->build_command || [] }) {
 		$ab_version = '0.005';
 	}
 
@@ -319,6 +366,10 @@ sub register_prereqs {
 	
 	if(defined $self->stage_install) {
 		$ab_version = '0.016';
+	}
+	
+	if(@{ $self->helper } || grep /(?<!\%)\%\{([a-zA-Z_][a-zA-Z_0-9]+)\}/, @{ $self->build_command || [] }, @{ $self->install_command || [] } ) {
+		$ab_version = '0.020';
 	}
 
 	$self->zilla->register_prereqs({
@@ -387,8 +438,10 @@ __EOT__
 around module_build_args => sub {
 	my ($orig, $self, @args) = @_;
 	my $pattern = $self->pattern;
+	my $exact_filename = $self->exact_filename;
 
 	my $bin_requires = $self->_bin_requires_hash;
+	my $helper       = $self->_helper_hash;
 
 	return {
 		%{ $self->$orig(@args) },
@@ -409,7 +462,7 @@ around module_build_args => sub {
 			# modifier, but then getting serialised as
 			# (?^u:$pattern) which fails to parse under perl less
 			# than v5.014.
-			pattern => "^$pattern\$",
+			defined $exact_filename ? (exact_filename => $exact_filename) : (pattern => "^$pattern\$"),
 		},
 		(alien_build_commands => $self->build_command)x!! $self->build_command,
 		(alien_install_commands => $self->install_command)x!! $self->install_command,
@@ -418,7 +471,10 @@ around module_build_args => sub {
 		defined $self->isolate_dynamic ? (alien_isolate_dynamic => $self->isolate_dynamic) : (),
 		defined $self->msys ? (alien_msys => $self->msys) : (),
 		defined $self->stage_install ? (alien_stage_install => $self->stage_install) : (),
-		%$bin_requires ? ( alien_bin_requires => \%$bin_requires ) : (),
+		defined $self->provides_libs ? (alien_provides_libs => $self->provides_libs) : (),
+		defined $self->provides_cflags ? (alien_provides_cflags => $self->provides_cflags) : (),
+		%$bin_requires ? ( alien_bin_requires => $bin_requires ) : (),
+		%$helper ? ( alien_helper => $helper ): (),
 	};
 };
 
