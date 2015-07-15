@@ -168,6 +168,10 @@ Sets the C<alien_provides_cflags> property for L<Alien::Base::ModuleBuild>.
 
 Sets the C<alien_provides_libs> property for L<Alien::Base::ModuleBuild>.
 
+=head2 version_check
+
+Sets the C<alien_version_check> property for L<Alien::Base::ModuleBuild>.
+
 =head1 InstallRelease
 
 The method L<Alien::Base> is using would compile the complete Alien 2 times, if
@@ -341,6 +345,11 @@ has provides_libs => (
 	is  => 'rw',
 );
 
+has version_check => (
+	isa => 'Str',
+	is  => 'rw',
+);
+
 # multiple build/install commands return as an arrayref
 around mvp_multivalue_args => sub {
   my ($orig, $self) = @_;
@@ -472,6 +481,7 @@ around module_build_args => sub {
 		defined $self->msys ? (alien_msys => $self->msys) : (),
 		defined $self->stage_install ? (alien_stage_install => $self->stage_install) : (),
 		defined $self->provides_libs ? (alien_provides_libs => $self->provides_libs) : (),
+		defined $self->version_check ? (alien_version_check => $self->version_check) : (),
 		defined $self->provides_cflags ? (alien_provides_cflags => $self->provides_cflags) : (),
 		%$bin_requires ? ( alien_bin_requires => $bin_requires ) : (),
 		%$helper ? ( alien_helper => $helper ): (),
