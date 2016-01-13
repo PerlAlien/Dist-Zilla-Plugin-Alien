@@ -25,7 +25,8 @@ subtest 'msys on' => sub {
   my($plugin) = grep { $_->isa('Dist::Zilla::Plugin::Alien') } @{ $tzil->plugins };
 
   is $plugin->module_build_args->{alien_msys}, 1, "aien_msys = 1";
-  is $tzil->prereqs->as_string_hash->{configure}->{requires}->{'Alien::Base'}, '0.006', 'configure prereq';
+  is $tzil->prereqs->as_string_hash->{runtime}->{requires}->{'Alien::Base'}, '0.006', 'runtime prereq';
+  is $tzil->prereqs->as_string_hash->{configure}->{requires}->{'Alien::Base::ModuleBuild'}, '0.006', 'configure prereq';
 };
 
 subtest 'msys off' => sub {

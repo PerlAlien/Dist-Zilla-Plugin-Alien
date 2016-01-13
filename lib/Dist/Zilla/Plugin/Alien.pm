@@ -385,7 +385,7 @@ sub register_prereqs {
 			type  => 'requires',
 			phase => 'configure',
 		},
-		'Alien::Base' => $ab_version,
+		'Alien::Base::ModuleBuild' => $ab_version,
 		'File::ShareDir' => '1.03',
 		@{ $self->split_bins } > 0 ? ('Path::Class' => '0.013') : (),
 		%$configure_requires,

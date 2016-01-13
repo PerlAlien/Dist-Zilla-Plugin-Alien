@@ -25,7 +25,8 @@ subtest 'plugin' => sub {
   my($plugin) = grep { $_->isa('Dist::Zilla::Plugin::Alien') } @{ $tzil->plugins };
   is_deeply $plugin->module_build_args->{alien_inline_auto_include}, [qw( foo.h bar.h baz.h )], 'includes = foo.h bar.h baz.h';
 
-  is $tzil->prereqs->as_string_hash->{configure}->{requires}->{'Alien::Base'}, '0.006', 'configure prereq';
+  is $tzil->prereqs->as_string_hash->{runtime}->{requires}->{'Alien::Base'}, '0.006', 'configure prereq';
+  is $tzil->prereqs->as_string_hash->{configure}->{requires}->{'Alien::Base::ModuleBuild'}, '0.006', 'configure prereq';
   is $tzil->prereqs->as_string_hash->{runtime}->{requires}->{'Alien::Base'}, '0.006', 'runtime prereq';
 
 };
