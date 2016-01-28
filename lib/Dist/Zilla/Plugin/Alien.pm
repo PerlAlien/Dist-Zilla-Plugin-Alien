@@ -3,7 +3,7 @@ package Dist::Zilla::Plugin::Alien;
 
 use Moose;
 extends 'Dist::Zilla::Plugin::ModuleBuild';
-with 'Dist::Zilla::Role::PrereqSource', 'Dist::Zilla::Role::FileGatherer';
+with 'Dist::Zilla::Role::PrereqSource', 'Dist::Zilla::Role::FileGatherer', 'Dist::Zilla::Role::MetaProvider';
 
 =head1 SYNOPSIS
 
@@ -487,6 +487,11 @@ around module_build_args => sub {
 		%$helper ? ( alien_helper => $helper ): (),
 	};
 };
+
+sub metadata {
+	my($self) = @_;
+	%{ $self->_bin_requires_hash } ? { dynamic_config => 1 } : {};
+}
 
 __PACKAGE__->meta->make_immutable;
 no Moose;

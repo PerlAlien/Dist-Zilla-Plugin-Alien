@@ -30,6 +30,7 @@ subtest 'bin_requires' => sub {
   is $tzil->prereqs->as_string_hash->{configure}->{requires}->{'Alien::Base::ModuleBuild'}, '0.006', 'configure prereq';
   is $tzil->prereqs->as_string_hash->{configure}->{requires}->{'Alien::foo'}, '0', 'configure prereq';
   is $tzil->prereqs->as_string_hash->{configure}->{requires}->{'Alien::bar'}, '2.0', 'configure prereq';
+  is $tzil->distmeta->{dynamic_config}, 1, 'dynamic_config';
 };
 
 done_testing;
