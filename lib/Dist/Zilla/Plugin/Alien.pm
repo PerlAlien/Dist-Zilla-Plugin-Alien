@@ -488,9 +488,14 @@ around module_build_args => sub {
 	};
 };
 
+sub _is_dynamic_config {
+	my($self) = @_;
+	%{ $self->_bin_requires_hash } || $self->msys || grep /(?<!\%)\%c/, @{ $self->build_command || [] }
+}
+
 sub metadata {
 	my($self) = @_;
-	%{ $self->_bin_requires_hash } ? { dynamic_config => 1 } : {};
+	$self->_is_dynamic_config ? { dynamic_config => 1 } : {};
 }
 
 __PACKAGE__->meta->make_immutable;
