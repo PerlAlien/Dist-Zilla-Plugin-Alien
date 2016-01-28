@@ -14,6 +14,7 @@ subtest 'plugin' => sub {
           [ 'Alien' => {
             repo => 'http://localhost/foo/bar',
             inline_auto_include => [ qw( foo.h bar.h baz.h ) ],
+            build_command => [ 'some command' ],
           } ],
         ),
       },

@@ -490,7 +490,7 @@ around module_build_args => sub {
 
 sub _is_dynamic_config {
 	my($self) = @_;
-	%{ $self->_bin_requires_hash } || $self->msys || grep /(?<!\%)\%c/, @{ $self->build_command || [] }
+	%{ $self->_bin_requires_hash } || $self->msys || @{ $self->build_command || [] } == 0 || grep /(?<!\%)\%c/, @{ $self->build_command || [] };
 }
 
 sub metadata {
