@@ -3,6 +3,7 @@ package Dist::Zilla::PluginBundle::Alien;
 
 use Moose;
 use Dist::Zilla;
+use Dist::Zilla::Plugin::Alien;
 with 'Dist::Zilla::Role::PluginBundle::Easy';
 
 =head1 SYNOPSIS
@@ -22,6 +23,11 @@ with L<Dist::Zilla::PluginBundle::Basic>.
 =cut
 
 use Dist::Zilla::PluginBundle::Basic;
+
+# multiple build/install commands return as an arrayref
+sub mvp_multivalue_args {
+  Dist::Zilla::Plugin::Alien->mvp_multivalue_args;
+};
 
 sub configure {
   my ($self) = @_;
