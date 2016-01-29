@@ -28,8 +28,6 @@ subtest 'bin_requires' => sub {
   is $plugin->module_build_args->{alien_bin_requires}->{"Alien::bar"}, '2.0', "Alien::bar = 2.0";
   is $tzil->prereqs->as_string_hash->{runtime}->{requires}->{'Alien::Base'}, '0.006', 'configure prereq';
   is $tzil->prereqs->as_string_hash->{configure}->{requires}->{'Alien::Base::ModuleBuild'}, '0.006', 'configure prereq';
-  is $tzil->prereqs->as_string_hash->{configure}->{requires}->{'Alien::foo'}, '0', 'configure prereq';
-  is $tzil->prereqs->as_string_hash->{configure}->{requires}->{'Alien::bar'}, '2.0', 'configure prereq';
   is $tzil->distmeta->{dynamic_config}, 1, 'dynamic_config';
 };
 

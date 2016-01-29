@@ -399,7 +399,6 @@ sub register_prereqs {
 	my ( $self ) = @_;
 
 	my $ab_version = '0.002';
-	my $configure_requires = {};
 
 	if(defined $self->isolate_dynamic || defined $self->autoconf_with_pic || grep /(?<!\%)\%c/, @{ $self->build_command || [] }) {
 		$ab_version = '0.005';
@@ -407,9 +406,6 @@ sub register_prereqs {
 
 	if(@{ $self->inline_auto_include } || @{ $self->bin_requires } || defined $self->msys) {
 		$ab_version = '0.006';
-		if(@{ $self->bin_requires }) {
-			$configure_requires = $self->_bin_requires_hash;
-		}
 	}
 	
 	if(defined $self->stage_install) {
@@ -431,7 +427,6 @@ sub register_prereqs {
 		'Alien::Base::ModuleBuild' => $ab_version,
 		'File::ShareDir' => '1.03',
 		@{ $self->split_bins } > 0 ? ('Path::Class' => '0.013') : (),
-		%$configure_requires,
 	);
 	$self->zilla->register_prereqs({
 			type  => 'requires',
