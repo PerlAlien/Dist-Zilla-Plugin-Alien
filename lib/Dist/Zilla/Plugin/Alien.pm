@@ -100,6 +100,13 @@ C<alien_install_commands> option). This is optional.
 
   install_command = make install
 
+=head2 test_command
+
+The ordered sequence of commands used to test the distribution (passed to the
+C<alien_test_commands> option).  This is optional, and not often used.
+
+  test_command = make check
+
 =head2 isolate_dynamic
 
 If set to true, then dynamic libraries will be isolated from the static libraries
@@ -285,6 +292,11 @@ has install_command => (
 	is => 'rw',
 );
 
+has test_command => (
+	isa => 'ArrayRef[Str]',
+	is => 'rw',
+);
+
 has isolate_dynamic => (
 	isa => 'Int',
 	is => 'rw',
@@ -353,7 +365,7 @@ has version_check => (
 # multiple build/install commands return as an arrayref
 around mvp_multivalue_args => sub {
   my ($orig, $self) = @_;
-  return ($self->$orig, 'build_command', 'install_command', 'inline_auto_include', 'bin_requires', 'helper');
+  return ($self->$orig, 'build_command', 'install_command', 'test_command', 'inline_auto_include', 'bin_requires', 'helper');
 };
 
 sub register_prereqs {
@@ -377,7 +389,7 @@ sub register_prereqs {
 		$ab_version = '0.016';
 	}
 	
-	if(@{ $self->helper } || grep /(?<!\%)\%\{([a-zA-Z_][a-zA-Z_0-9]+)\}/, @{ $self->build_command || [] }, @{ $self->install_command || [] } ) {
+	if(@{ $self->helper } || grep /(?<!\%)\%\{([a-zA-Z_][a-zA-Z_0-9]+)\}/, @{ $self->build_command || [] }, @{ $self->install_command || [] }, @{ $self->test_command || [] } ) {
 		$ab_version = '0.020';
 	}
 
@@ -475,6 +487,7 @@ around module_build_args => sub {
 		},
 		(alien_build_commands => $self->build_command)x!! $self->build_command,
 		(alien_install_commands => $self->install_command)x!! $self->install_command,
+		(alien_test_commands => $self->test_command)x!! $self->test_command,
 		(alien_inline_auto_include => $self->inline_auto_include)x!! $self->inline_auto_include,
 		defined $self->autoconf_with_pic ? (alien_autoconf_with_pic => $self->autoconf_with_pic) : (),
 		defined $self->isolate_dynamic ? (alien_isolate_dynamic => $self->isolate_dynamic) : (),
