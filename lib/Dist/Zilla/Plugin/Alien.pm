@@ -165,7 +165,7 @@ Defines helpers.  You can specify the content of the helper (which will be evalu
 in L<Alien::Base::ModuleBuild> during the build/install step) using the equal C<=> sign.
 
  [Alien]
- helper = mytool = 'mytool --foo --bar'
+ helper = mytool = '"mytool --foo --bar"'
 
 =head2 provides_cflags
 
@@ -178,6 +178,21 @@ Sets the C<alien_provides_libs> property for L<Alien::Base::ModuleBuild>.
 =head2 version_check
 
 Sets the C<alien_version_check> property for L<Alien::Base::ModuleBuild>.
+
+=head2 env
+
+Sets the C<alien_env> property for L<Alien::Base::ModuleBuild>.  You can specify
+the content of the environment using the equal C<=> sign.  Note that values
+are interpolated, and allow variables and helpers.
+
+ [Alien]
+ helper = path = 'require Config;$Config{path_sep}$ENV{PATH}'
+ ; sets PATH to /extra/path:$PATH on UNIX, /extra/path;$PATH on Windows
+ env = PATH = /extra/path%{path}
+ ; sets FOO to 1
+ env = FOO = 1
+ ; sets BAR to ''
+ env = BAR
 
 =head1 InstallRelease
 
@@ -342,6 +357,18 @@ sub _helper_hash {
 	\%helper;
 }
 
+has env => (
+	isa => 'ArrayRef[Str]',
+	is => 'rw',
+	default => sub { [] },
+);
+
+sub _env_hash {
+	my($self) = @_;
+	my %env = map { /^\s*(.*?)\s*=\s*(.*)\s*$/ ? ($1 => $2) : ($_ => '') } @{ $self->env };
+	\%env;
+}
+
 has stage_install => (
 	isa => 'Int',
 	is  => 'rw',
@@ -365,7 +392,7 @@ has version_check => (
 # multiple build/install commands return as an arrayref
 around mvp_multivalue_args => sub {
   my ($orig, $self) = @_;
-  return ($self->$orig, 'build_command', 'install_command', 'test_command', 'inline_auto_include', 'bin_requires', 'helper');
+  return ($self->$orig, 'build_command', 'install_command', 'test_command', 'inline_auto_include', 'bin_requires', 'helper', 'env');
 };
 
 sub register_prereqs {
@@ -393,7 +420,7 @@ sub register_prereqs {
 		$ab_version = '0.020';
 	}
 
-	if(grep /(?<!\%)\%X/, @{ $self->build_command || [] }, @{ $self->install_command || [] }, @{ $self->test_command || [] } ) {
+	if(@{ $self->env } || grep /(?<!\%)\%X/, @{ $self->build_command || [] }, @{ $self->install_command || [] }, @{ $self->test_command || [] } ) {
 		$ab_version = '0.027';
 	}
 
@@ -467,6 +494,7 @@ around module_build_args => sub {
 
 	my $bin_requires = $self->_bin_requires_hash;
 	my $helper       = $self->_helper_hash;
+	my $env          = $self->_env_hash;
 
 	return {
 		%{ $self->$orig(@args) },
@@ -502,6 +530,7 @@ around module_build_args => sub {
 		defined $self->provides_cflags ? (alien_provides_cflags => $self->provides_cflags) : (),
 		%$bin_requires ? ( alien_bin_requires => $bin_requires ) : (),
 		%$helper ? ( alien_helper => $helper ): (),
+		%$env ? ( alien_env => $env ) : (),
 	};
 };
 
