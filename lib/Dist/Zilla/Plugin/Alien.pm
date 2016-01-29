@@ -393,6 +393,10 @@ sub register_prereqs {
 		$ab_version = '0.020';
 	}
 
+	if(grep /(?<!\%)\%X/, @{ $self->build_command || [] }, @{ $self->install_command || [] }, @{ $self->test_command || [] } ) {
+		$ab_version = '0.027';
+	}
+
 	$self->zilla->register_prereqs({
 			type  => 'requires',
 			phase => 'configure',
