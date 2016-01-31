@@ -13,7 +13,7 @@ subtest 'simple' => sub {
           {},
           [ 'Alien' => {
             repo => 'http://localhost/foo/bar',
-            env => [ "FOO", "BAR = 1" ],
+            env => [ "BAR = 1" ],
           } ],
         ),
       },
@@ -24,7 +24,7 @@ subtest 'simple' => sub {
 
   my($plugin) = grep { $_->isa('Dist::Zilla::Plugin::Alien') } @{ $tzil->plugins };
 
-  is_deeply $plugin->module_build_args->{alien_env}, { FOO => '', BAR => '1' };
+  is_deeply $plugin->module_build_args->{alien_env}, { BAR => '1' };
   is_deeply $plugin->module_build_args->{requires}->{"Alien::Base"}, '0.027';
   is_deeply $plugin->module_build_args->{configure_requires}->{"Alien::Base::ModuleBuild"}, '0.027';
 };

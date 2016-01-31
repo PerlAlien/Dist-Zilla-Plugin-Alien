@@ -191,8 +191,22 @@ are interpolated, and allow variables and helpers.
  env = PATH = /extra/path%{path}
  ; sets FOO to 1
  env = FOO = 1
- ; sets BAR to ''
- env = BAR
+
+There is no default value, so this is illegal:
+
+ [Alien]
+ ; won't build!
+ env = FOO
+
+Note that setting an environment variable to the empty string (C<''>) is not
+portable.  In particular it will work on Unix as you might expect, but in
+Windows it will actually unset the environment variable, which may not be
+what you intend.
+
+ [Alien]
+ ; works but not consistent
+ ; over all platforms
+ env = FOO =
 
 =head1 InstallRelease
 
@@ -365,7 +379,11 @@ has env => (
 
 sub _env_hash {
 	my($self) = @_;
-	my %env = map { /^\s*(.*?)\s*=\s*(.*)\s*$/ ? ($1 => $2) : ($_ => '') } @{ $self->env };
+	my %env = map {
+	  /^\s*(.*?)\s*=\s*(.*)\s*$/ 
+	    ? ($1 => $2) 
+	    : $self->log_fatal("Please specify a value for $_")
+	  } @{ $self->env };
 	\%env;
 }
 
