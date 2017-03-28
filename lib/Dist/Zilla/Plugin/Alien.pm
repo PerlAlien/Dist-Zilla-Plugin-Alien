@@ -46,6 +46,10 @@ L<Dist::Zilla::PluginBundle::Basic>, because this includes it. As alternative
 you can use L<Dist::Zilla::PluginBundle::Alien> which is also included in this
 distribution.
 
+You should also consider using L<Dist::Zilla::Plugin::AlienBuild> for new
+development, as it uses the more modern flexible installer L<alienfile> +
+L<Alien::Build>.
+
 =head1 ATTRIBUTES
 
 =head2 repo
@@ -222,6 +226,28 @@ installs out of the unpacked distribution for the testing:
 This will do the trick :). Be aware, that you need to add this plugin after
 I<[ModuleBuild]>. You can use L<Dist::Zilla::PluginBundle::Author::GETTY>,
 which directly use this trick in the right combination.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item L<Alien::Base>
+
+Base class for aliens
+
+=item L<Alien::Base::ModuleBuild>
+
+Installer this plugin uses for building L<Alien>s.
+
+=item L<alienfile> + L<Alien::Build>
+
+Modern pluggable installer alternative to L<Alien::Base::ModuleBuild>.
+
+=item L<Dist::Zilla::Plugin::AlienBuild>
+
+Alternative L<Dist::Zilla> plugin that uses L<alienfile> + L<Alien::Build>.
+
+=back
 
 =cut
 
