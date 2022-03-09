@@ -500,19 +500,30 @@ use strict;
 use warnings;
 use File::ShareDir ':ALL';
 use Path::Class;
+use File::Which;
+use {{ $mod }};
 
-my $abs = file(dist_dir('{{ $dist->name }}'),'bin','{{ $bin }}')->cleanup->absolute;
+my $abs;
+if({{ $mod }}->install_type ne 'system') {
+	$abs = file(dist_dir('{{ $dist->name }}'),'bin','{{ $bin }}')->cleanup->absolute;
+} else {
+	my @opts = which '{{ $bin }}';
+	$abs = $opts[1];
+}
 
 exec($abs, @ARGV) or print STDERR "couldn't exec {{ $bin }}: $!";
 
 __EOT__
 
 	for (@{$self->split_bins}) {
+		my $module = $self->zilla->name;
+		$module =~ s/-/::/g;
 		my $content = $self->fill_in_string(
 			$template,
 			{
 				dist => \($self->zilla),
 				bin => $_,
+				mod => $module,
 			},
 		);
 
