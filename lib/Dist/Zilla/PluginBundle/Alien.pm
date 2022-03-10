@@ -17,6 +17,11 @@ In your B<dist.ini>:
 
 =head1 DESCRIPTION
 
+B<NOTE>: This module uses the older, and still supported, but not actively
+developed L<Alien::Base::ModuleBuild> interface for installing aliens. You
+should use L<Dist::Zilla::Plugin::AlienBuild> for new L<Alien>s, and consider
+migration for older code as well.
+
 This plugin bundle allows to use L<Dist::Zilla::Plugin::Alien> together
 with L<Dist::Zilla::PluginBundle::Basic>.
 
