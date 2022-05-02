@@ -2,6 +2,7 @@ package Dist::Zilla::Plugin::Alien;
 # ABSTRACT: Use Alien::Base with Dist::Zilla
 
 use Moose;
+use Data::Dumper;
 extends 'Dist::Zilla::Plugin::ModuleBuild';
 with 'Dist::Zilla::Role::PrereqSource', 'Dist::Zilla::Role::FileGatherer', 'Dist::Zilla::Role::MetaProvider';
 
@@ -488,7 +489,7 @@ sub register_prereqs {
 }
 
 has "+mb_class" => (
-	default => 'Alien::Base::ModuleBuild',
+	default => 'MyModuleBuild',
 );
 
 after gather_files => sub {
@@ -520,6 +521,7 @@ exec($abs, @ARGV) or print STDERR "couldn't exec {{ $bin }}: $!";
 
 __EOT__
 
+	my @bin_paths;
 	for (@{$self->split_bins}) {
 		my $module = $self->zilla->name;
 		$module =~ s/-/::/g;
@@ -537,9 +539,47 @@ __EOT__
 			name => 'bin/'.$_,
 			mode => 0755,
 		});
+		push @bin_paths, $file->name;
 
 		$self->add_file($file);
 	}
+
+	my $mb_custom_template = <<'__EOT__';
+package # hide from PAUSE
+  MyModuleBuild;
+
+use parent 'Alien::Base::ModuleBuild';
+
+sub process_script_files {
+  my $self = shift;
+
+  if( $self->config_data->{install_type} eq 'system' ) {
+    my $bins;
+    {{ $bin_paths }}
+    my %script_files = map { $_ => 1 } @{ $self->{properties}{script_files} };
+    unlink @$bins;
+    delete @script_files{ @$bins };
+    $self->{properties}{script_files} = [ keys %script_files ];
+  }
+
+  $self->SUPER::process_script_files;
+}
+
+1;
+__EOT__
+
+	my $mb_custom_content = $self->fill_in_string(
+		$mb_custom_template,
+		{
+			bin_paths => Data::Dumper->Dump( [ \@bin_paths ], [qw(bins)]),
+		}
+	);
+	my $mb_file = Dist::Zilla::File::InMemory->new({
+		content => $mb_custom_content,
+		name => 'inc/' . $self->mb_class . '.pm',
+	});
+
+	$self->add_file($mb_file);
 };
 
 around module_build_args => sub {
