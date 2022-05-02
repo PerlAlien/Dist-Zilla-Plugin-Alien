@@ -77,8 +77,10 @@ jobs:
 
       - name: Install Perl deps
         run: |
-          cpanm --notest --installdeps .
+          cpanm --notest --installdeps --with-develop .
 
       - name: Run tests
+        env:
+          AUTHOR_TESTING: 1
         run: |
           cpanm --verbose --test-only .
