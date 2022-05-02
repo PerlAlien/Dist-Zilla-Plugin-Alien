@@ -557,7 +557,6 @@ sub process_script_files {
     my $bins;
     {{ $bin_paths }}
     my %script_files = map { $_ => 1 } @{ $self->{properties}{script_files} };
-    unlink @$bins;
     delete @script_files{ @$bins };
     $self->{properties}{script_files} = [ keys %script_files ];
   }
