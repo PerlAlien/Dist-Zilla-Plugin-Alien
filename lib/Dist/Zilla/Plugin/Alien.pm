@@ -506,15 +506,13 @@ use strict;
 use warnings;
 use File::ShareDir ':ALL';
 use Path::Class;
-use File::Which;
 use {{ $mod }};
 
 my $abs;
 if({{ $mod }}->install_type ne 'system') {
 	$abs = file(dist_dir('{{ $dist->name }}'),'bin','{{ $bin }}')->cleanup->absolute;
 } else {
-	my @opts = which '{{ $bin }}';
-	$abs = $opts[1];
+	die "{{ $mod }} reinstalled as non-share install. Please remove wrapper at $0";
 }
 
 exec($abs, @ARGV) or print STDERR "couldn't exec {{ $bin }}: $!";
