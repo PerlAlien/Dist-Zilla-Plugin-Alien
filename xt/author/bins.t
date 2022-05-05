@@ -52,6 +52,13 @@ sub compare_bin_dir {
   }
 }
 
+sub is_module_build_class {
+  my ($tzil, $mb_class) = @_;
+  my ($plugin) = grep { $_->isa('Dist::Zilla::Plugin::Alien') } @{ $tzil->plugins };
+
+  is $plugin->mb_class, $mb_class, "Module::Build subclass is $mb_class";
+}
+
 sub install {
   my ($tzil) = @_;
 
@@ -77,9 +84,25 @@ sub install {
   return $locallib;
 }
 
+use constant {
+  MB_AB => 'Alien::Base::ModuleBuild',
+  MB_CUSTOM => 'MyModuleBuild',
+};
+
+subtest 'setting bins and mb_class fails' => sub {
+  my $tzil = builder_factory( alien => [
+    bins => 'hello',
+    mb_class => 'HelloBuilder',
+  ] );
+  eval { $tzil->build; 1 };
+  my $err = $@;
+  like $err, qr/Unable to set custom subclass/, 'error thrown';
+};
+
 subtest 'system install with bins (2)' => sub {
   local $ENV{ALIEN_INSTALL_TYPE} = 'system';
   my $tzil = builder_factory( alien => [ bins => 'hello hola' ] );
+  is_module_build_class( $tzil, MB_CUSTOM );
   my $install_path = install( $tzil );
   compare_bin_dir( $install_path, [] );
 };
@@ -87,6 +110,7 @@ subtest 'system install with bins (2)' => sub {
 subtest 'share install with bins (1)' => sub {
   local $ENV{ALIEN_INSTALL_TYPE} = 'share';
   my $tzil = builder_factory( alien => [ bins => 'hello' ] );
+  is_module_build_class( $tzil, MB_CUSTOM );
   my $install_path = install( $tzil );
   compare_bin_dir( $install_path, [ 'hello' ] );
 };
@@ -94,6 +118,7 @@ subtest 'share install with bins (1)' => sub {
 subtest 'share install with bins (2)' => sub {
   local $ENV{ALIEN_INSTALL_TYPE} = 'share';
   my $tzil = builder_factory( alien => [ bins => 'hello hola' ] );
+  is_module_build_class( $tzil, MB_CUSTOM );
   my $install_path = install( $tzil );
   compare_bin_dir( $install_path, [ qw(hello hola) ] );
 };
@@ -101,6 +126,7 @@ subtest 'share install with bins (2)' => sub {
 subtest 'share install without bins (0)' => sub {
   local $ENV{ALIEN_INSTALL_TYPE} = 'share';
   my $tzil = builder_factory();
+  is_module_build_class( $tzil, MB_AB );
   my $install_path = install( $tzil );
   compare_bin_dir( $install_path, [] );
 };
@@ -108,6 +134,7 @@ subtest 'share install without bins (0)' => sub {
 subtest 'system install with bins (1) but also non-wrapper bin' => sub {
   local $ENV{ALIEN_INSTALL_TYPE} = 'system';
   my $tzil = builder_factory( alien => [ bins => 'hello' ], files => { path('source/bin/goodbye') => '' }  );
+  is_module_build_class( $tzil, MB_CUSTOM );
   my $install_path = install( $tzil );
   compare_bin_dir( $install_path, [ 'goodbye' ] );
 };
@@ -115,6 +142,7 @@ subtest 'system install with bins (1) but also non-wrapper bin' => sub {
 subtest 'share install with bins (1) but also non-wrapper bin' => sub {
   local $ENV{ALIEN_INSTALL_TYPE} = 'share';
   my $tzil = builder_factory( alien => [ bins => 'hello' ], files => { path('source/bin/goodbye') => '' }  );
+  is_module_build_class( $tzil, MB_CUSTOM );
   my $install_path = install( $tzil );
   compare_bin_dir( $install_path, [ qw(hello goodbye) ] );
 };

@@ -88,6 +88,9 @@ A space or tab seperated list of all binaries that should be wrapped to be execu
 from the perl environment (if you use perlbrew or local::lib this also
 guarantees that its available via the PATH).
 
+B<NOTE>: If you set this, the build will use a custom subclass of L<Alien::Base::ModuleBuild>
+in order to only install the wrapper scripts for a share install.
+
 =head2 name
 
 The name of the Alien package, this is used for the pattern matching filename.
@@ -489,7 +492,15 @@ sub register_prereqs {
 }
 
 has "+mb_class" => (
-	default => 'MyModuleBuild',
+	lazy => 1,
+	default => sub {
+		my ( $self ) = @_;
+		if( $self->has_bins ) {
+			return 'MyModuleBuild';
+		} else {
+			return 'Alien::Base::ModuleBuild';
+		}
+	},
 );
 
 after gather_files => sub {
@@ -542,7 +553,12 @@ __EOT__
 		$self->add_file($file);
 	}
 
-	my $mb_custom_template = <<'__EOT__';
+	if( $self->has_bins ) {
+		if( $self->mb_class ne 'MyModuleBuild' ) {
+			die "Unable to set custom subclass mb_class to 'MyModuleBuild' (needed for 'bins')";
+		}
+
+		my $mb_custom_template = <<'__EOT__';
 package # hide from PAUSE
   MyModuleBuild;
 
@@ -565,18 +581,19 @@ sub process_script_files {
 1;
 __EOT__
 
-	my $mb_custom_content = $self->fill_in_string(
-		$mb_custom_template,
-		{
-			bin_paths => Data::Dumper->Dump( [ \@bin_paths ], [qw(bins)]),
-		}
-	);
-	my $mb_file = Dist::Zilla::File::InMemory->new({
-		content => $mb_custom_content,
-		name => 'inc/' . $self->mb_class . '.pm',
-	});
+		my $mb_custom_content = $self->fill_in_string(
+			$mb_custom_template,
+			{
+				bin_paths => Data::Dumper->Dump( [ \@bin_paths ], [qw(bins)]),
+			}
+		);
+		my $mb_file = Dist::Zilla::File::InMemory->new({
+			content => $mb_custom_content,
+			name => 'inc/' . $self->mb_class . '.pm',
+		});
 
-	$self->add_file($mb_file);
+		$self->add_file($mb_file);
+	}
 };
 
 around module_build_args => sub {
