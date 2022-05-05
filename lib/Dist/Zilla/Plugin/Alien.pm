@@ -2,6 +2,7 @@ package Dist::Zilla::Plugin::Alien;
 # ABSTRACT: Use Alien::Base with Dist::Zilla
 
 use Moose;
+use Data::Dumper;
 extends 'Dist::Zilla::Plugin::ModuleBuild';
 with 'Dist::Zilla::Role::PrereqSource', 'Dist::Zilla::Role::FileGatherer', 'Dist::Zilla::Role::MetaProvider';
 
@@ -86,6 +87,9 @@ Instead of providing a pattern you may use this to set the exact filename.
 A space or tab seperated list of all binaries that should be wrapped to be executable
 from the perl environment (if you use perlbrew or local::lib this also
 guarantees that its available via the PATH).
+
+B<NOTE>: If you set this, the build will use a custom subclass of L<Alien::Base::ModuleBuild>
+in order to only install the wrapper scripts for a share install.
 
 =head2 name
 
@@ -488,7 +492,15 @@ sub register_prereqs {
 }
 
 has "+mb_class" => (
-	default => 'Alien::Base::ModuleBuild',
+	lazy => 1,
+	default => sub {
+		my ( $self ) = @_;
+		if( $self->has_bins ) {
+			return 'MyModuleBuild';
+		} else {
+			return 'Alien::Base::ModuleBuild';
+		}
+	},
 );
 
 after gather_files => sub {
@@ -505,19 +517,29 @@ use strict;
 use warnings;
 use File::ShareDir ':ALL';
 use Path::Class;
+use {{ $mod }};
 
-my $abs = file(dist_dir('{{ $dist->name }}'),'bin','{{ $bin }}')->cleanup->absolute;
+my $abs;
+if({{ $mod }}->install_type ne 'system') {
+	$abs = file(dist_dir('{{ $dist->name }}'),'bin','{{ $bin }}')->cleanup->absolute;
+} else {
+	die "{{ $mod }} reinstalled as non-share install. Please remove wrapper at $0";
+}
 
 exec($abs, @ARGV) or print STDERR "couldn't exec {{ $bin }}: $!";
 
 __EOT__
 
+	my @bin_paths;
 	for (@{$self->split_bins}) {
+		my $module = $self->zilla->name;
+		$module =~ s/-/::/g;
 		my $content = $self->fill_in_string(
 			$template,
 			{
 				dist => \($self->zilla),
 				bin => $_,
+				mod => $module,
 			},
 		);
 
@@ -526,8 +548,51 @@ __EOT__
 			name => 'bin/'.$_,
 			mode => 0755,
 		});
+		push @bin_paths, $file->name;
 
 		$self->add_file($file);
+	}
+
+	if( $self->has_bins ) {
+		if( $self->mb_class ne 'MyModuleBuild' ) {
+			die "Unable to set custom subclass mb_class to 'MyModuleBuild' (needed for 'bins')";
+		}
+
+		my $mb_custom_template = <<'__EOT__';
+package # hide from PAUSE
+  MyModuleBuild;
+
+use parent 'Alien::Base::ModuleBuild';
+
+sub process_script_files {
+  my $self = shift;
+
+  if( $self->config_data->{install_type} eq 'system' ) {
+    my $bins;
+    {{ $bin_paths }}
+    my %script_files = map { $_ => 1 } @{ $self->{properties}{script_files} };
+    delete @script_files{ @$bins };
+    $self->{properties}{script_files} = [ keys %script_files ];
+  }
+
+  $self->SUPER::process_script_files;
+}
+
+1;
+__EOT__
+
+		my $mb_custom_content = $self->fill_in_string(
+			$mb_custom_template,
+			{
+				bin_paths => Data::Dumper->Dump( [ \@bin_paths ], [qw(bins)]),
+			}
+		);
+		my $mb_file = Dist::Zilla::File::InMemory->new({
+			content => $mb_custom_content,
+			name => 'inc/' . $self->mb_class . '.pm',
+		});
+
+		$self->add_file($mb_file);
 	}
 };
 

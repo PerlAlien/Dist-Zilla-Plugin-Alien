@@ -75,6 +75,11 @@ jobs:
 
       - run: perl -V
 
+      - name: Install GNU Hello
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get install --no-install-recommends -y hello
+
       - name: Install Perl deps
         run: |
           cpanm --notest --installdeps --with-develop .
